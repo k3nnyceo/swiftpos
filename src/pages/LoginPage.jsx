@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 
 export default function LoginPage() {
-  const { login, users } = useAuth()
+  const { login } = useAuth()
   const [pin, setPin]     = useState('')
   const [error, setError] = useState(false)
   const [shake, setShake] = useState(false)
@@ -71,15 +71,6 @@ export default function LoginPage() {
           )
         })}
       </div>
-
-      <p className="text-gray-600 text-xs mt-8 text-center">
-        {users.map((u, i) => (
-          <React.Fragment key={u.id}>
-            {i > 0 && <>&nbsp;·&nbsp;</>}
-            {u.name} PIN: <span className="text-gray-400">{u.pin}</span>
-          </React.Fragment>
-        ))}
-      </p>
     </div>
   )
 }
