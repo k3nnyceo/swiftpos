@@ -9,7 +9,7 @@ function PINChangeCard({ user, onSave }) {
   const [status, setStatus]     = useState(null) // 'saved' | 'error'
 
   function handleSave() {
-    if (newPin.length < 4)          { setStatus('error'); return }
+    if (newPin.length !== 4)         { setStatus('error'); return }
     if (newPin !== confirm)          { setStatus('mismatch'); return }
     onSave(user.id, newPin)
     setNewPin(''); setConfirm('')
@@ -36,22 +36,22 @@ function PINChangeCard({ user, onSave }) {
         <div>
           <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">New PIN</label>
           <input
-            type="password" inputMode="numeric" maxLength={6}
+            type="password" inputMode="numeric" maxLength={4}
             value={newPin} onChange={e => { setNewPin(e.target.value.replace(/\D/g,'')); setStatus(null) }}
-            placeholder="Enter new PIN (4–6 digits)"
+            placeholder="Enter new 4-digit PIN"
             className="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#ea580c]"
           />
         </div>
         <div>
           <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Confirm PIN</label>
           <input
-            type="password" inputMode="numeric" maxLength={6}
+            type="password" inputMode="numeric" maxLength={4}
             value={confirm} onChange={e => { setConfirm(e.target.value.replace(/\D/g,'')); setStatus(null) }}
             placeholder="Re-enter PIN"
             className="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#ea580c]"
           />
         </div>
-        {status === 'error'    && <p className="text-xs text-red-500">PIN must be at least 4 digits</p>}
+        {status === 'error'    && <p className="text-xs text-red-500">PIN must be exactly 4 digits</p>}
         {status === 'mismatch' && <p className="text-xs text-red-500">PINs do not match</p>}
         <button onClick={handleSave}
           className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all
