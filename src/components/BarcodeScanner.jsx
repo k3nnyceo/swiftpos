@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import Quagga from '@ericblade/quagga2'
+import { Camera, X } from '@phosphor-icons/react'
 
 export default function BarcodeScanner({ onDetected, onClose }) {
   const videoRef   = useRef(null)
@@ -66,8 +67,8 @@ export default function BarcodeScanner({ onDetected, onClose }) {
             <p className="text-gray-400 text-xs mt-0.5">Point camera at product barcode</p>
           </div>
           <button onClick={onClose}
-            className="w-8 h-8 rounded-xl bg-[#252c3f] text-gray-400 flex items-center justify-center text-xl hover:text-white transition-colors">
-            ×
+            className="w-9 h-9 rounded-xl bg-[#252c3f] text-gray-400 flex items-center justify-center hover:text-white transition-colors">
+            <X size={18} weight="bold" />
           </button>
         </div>
 
@@ -75,7 +76,7 @@ export default function BarcodeScanner({ onDetected, onClose }) {
         <div className="relative bg-black" style={{ height: 280 }}>
           {error ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-              <span className="text-4xl mb-3">📷</span>
+              <Camera size={40} weight="bold" className="text-gray-500 mb-3" />
               <p className="text-red-400 text-sm">{error}</p>
             </div>
           ) : (
@@ -91,11 +92,11 @@ export default function BarcodeScanner({ onDetected, onClose }) {
                     'bottom-0 left-0 border-b-2 border-l-2',
                     'bottom-0 right-0 border-b-2 border-r-2',
                   ].map((cls, i) => (
-                    <div key={i} className={`absolute w-6 h-6 border-[#e8622a] ${cls}`} />
+                    <div key={i} className={`absolute w-6 h-6 border-[#ea580c] ${cls}`} />
                   ))}
                   {/* Scan line animation */}
                   {ready && (
-                    <div className="absolute left-0 right-0 h-0.5 bg-[#e8622a] opacity-80"
+                    <div className="absolute left-0 right-0 h-0.5 bg-[#ea580c] opacity-80"
                       style={{ animation: 'scanline 2s linear infinite', top: '50%' }} />
                   )}
                 </div>
