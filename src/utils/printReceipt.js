@@ -7,7 +7,7 @@
  */
 
 // Set to the public landing page URL once it's hosted; shown on receipts when non-empty.
-const PROMO_URL = 'https://swiftpos-sigma.vercel.app/'
+const PROMO_URL = 'https://swiftpos-landing.vercel.app/'
 const poweredBy = PROMO_URL ? `Powered by SwiftPOS · ${PROMO_URL.replace(/^https?:\/\//, '')}` : 'Powered by SwiftPOS'
 
 export function printReceipt(sale, store) {
