@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import Layout from './components/Layout'
 import LoginPage from './pages/LoginPage'
+import SetupPage from './pages/SetupPage'
 import SalesPage from './pages/SalesPage'
 import InventoryPage from './pages/InventoryPage'
 import DebtsPage from './pages/DebtsPage'
@@ -10,7 +11,12 @@ import ReportsPage from './pages/ReportsPage'
 import SettingsPage from './pages/SettingsPage'
 
 export default function App() {
-  const { currentUser, isOwner } = useAuth()
+  const { currentUser, isOwner, needsSetup } = useAuth()
+
+  // First run on this device — owner creates PINs
+  if (needsSetup) {
+    return <SetupPage />
+  }
 
   // Not logged in — always show login
   if (!currentUser) {

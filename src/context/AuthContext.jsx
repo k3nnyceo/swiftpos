@@ -1,17 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 
-// Defaults — overridden by whatever's saved in localStorage (e.g. changed PINs/names)
-const DEFAULT_USERS = [
-  { id: 'owner',   name: 'Owner',   role: 'owner',   pin: '1234' },
-  { id: 'cashier', name: 'Cashier', role: 'cashier', pin: '0000' },
-]
-
+// No built-in PINs: on first run the owner creates their own via the setup screen.
 function loadUsers() {
   try {
     const saved = localStorage.getItem('pos_users')
-    if (saved) return JSON.parse(saved)
-  } catch { /* corrupt storage — fall back to defaults */ }
-  return DEFAULT_USERS
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      if (Array.isArray(parsed)) return parsed
+    }
+  } catch { /* corrupt storage — treat as first run */ }
+  return []
 }
 
 const AuthContext = createContext(null)
@@ -36,6 +34,13 @@ export function AuthProvider({ children }) {
     return { success: false }
   }
 
+  function setupUsers(ownerPin, cashierPin) {
+    const owner = { id: 'owner', name: 'Owner', role: 'owner', pin: ownerPin }
+    const cashier = { id: 'cashier', name: 'Cashier', role: 'cashier', pin: cashierPin }
+    setUsers([owner, cashier])
+    setCurrentUser(owner)
+  }
+
   function logout() {
     setCurrentUser(null)
   }
@@ -52,7 +57,7 @@ export function AuthProvider({ children }) {
   const isCashier = currentUser?.role === 'cashier'
 
   return (
-    <AuthContext.Provider value={{ currentUser, users, login, logout, updatePin, updateName, isOwner, isCashier }}>
+    <AuthContext.Provider value={{ currentUser, users, needsSetup: users.length === 0, setupUsers, login, logout, updatePin, updateName, isOwner, isCashier }}>
       {children}
     </AuthContext.Provider>
   )
