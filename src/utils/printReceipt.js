@@ -6,6 +6,10 @@
  * 3. WhatsApp share (formats receipt as text message)
  */
 
+// Set to the public landing page URL once it's hosted; shown on receipts when non-empty.
+const PROMO_URL = 'https://swiftpos-sigma.vercel.app/'
+const poweredBy = PROMO_URL ? `Powered by SwiftPOS · ${PROMO_URL.replace(/^https?:\/\//, '')}` : 'Powered by SwiftPOS'
+
 export function printReceipt(sale, store) {
   const { name, currency = '₦', vatRate = 0.075 } = store
 
@@ -84,6 +88,14 @@ export function printReceipt(sale, store) {
       <div class="row small">
         <span>Payment:</span><span>${sale.paymentMethod}</span>
       </div>
+      ${sale.paymentMethod === 'Credit' && sale.customer ? `
+      <div class="row small">
+        <span>Customer:</span><span>${sale.customer.name}</span>
+      </div>
+      <div class="row small">
+        <span>Phone:</span><span>${sale.customer.phone}</span>
+      </div>
+      ` : ''}
 
       <div class="divider"></div>
 
@@ -105,7 +117,7 @@ export function printReceipt(sale, store) {
       <div class="row small"><span>Subtotal</span><span>${currency}${sale.subtotal.toLocaleString()}</span></div>
       <div class="row small"><span>VAT (${Math.round(vatRate * 100)}%)</span><span>${currency}${sale.vat.toLocaleString()}</span></div>
       <div class="total-row">
-        <span>TOTAL</span><span>${currency}${sale.total.toLocaleString()}</span>
+        <span>${sale.paymentMethod === 'Credit' ? 'AMOUNT OWED' : 'TOTAL'}</span><span>${currency}${sale.total.toLocaleString()}</span>
       </div>
 
       <div class="divider"></div>
@@ -116,6 +128,7 @@ export function printReceipt(sale, store) {
         <div style="margin-top:4px;">Please come again 😊</div>
         <div class="barcode-area" style="margin-top:8px;">|||||||||||||||</div>
         <div style="font-size:9px;letter-spacing:2px;">${sale.receiptNo}</div>
+        <div style="font-size:9px;margin-top:6px;color:#555;">${poweredBy}</div>
       </div>
 
       <script>window.onload = () => window.print()</script>
@@ -149,10 +162,12 @@ ${itemLines}
 ─────────────────
 Subtotal:  ${currency}${sale.subtotal.toLocaleString()}
 VAT:       ${currency}${sale.vat.toLocaleString()}
-*TOTAL:    ${currency}${sale.total.toLocaleString()}*
-Payment:   ${sale.paymentMethod}
+*${sale.paymentMethod === 'Credit' ? 'AMOUNT OWED' : 'TOTAL'}:    ${currency}${sale.total.toLocaleString()}*
+Payment:   ${sale.paymentMethod}${sale.paymentMethod === 'Credit' && sale.customer ? `
+Customer:  ${sale.customer.name} (${sale.customer.phone})` : ''}
 ─────────────────
 Thank you for shopping with us! 😊
+_${poweredBy}_
 `.trim()
 
   const encoded = encodeURIComponent(text)

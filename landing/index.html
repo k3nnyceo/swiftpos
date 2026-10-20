@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SwiftPOS for Pharmacies — sales, stock and customer credit on your phone</title>
+<meta name="description" content="Simple sales, stock and customer-debt tracking built for Nigerian pharmacies and provision stores. Join the waitlist.">
+<style>
+  :root {
+    --ember: #ea580c; --ember-dark: #c2410c; --steel: #1a1f2e; --steel-mid: #252c3f;
+    --bg: #f4f4f5; --card: #fff; --text: #18181b; --muted: #6b7280; --line: #e5e7eb;
+    --amber-bg: #fffbeb; --amber-line: #fcd34d; --amber-text: #b45309;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+  a { color: inherit; }
+
+  header { background: var(--steel); color: #fff; }
+  .nav { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; }
+  .logo { width: 34px; height: 34px; border-radius: 10px; background: var(--ember); display: grid; place-items: center; font-size: 13px; font-weight: 700; }
+  .nav a.link { font-size: 14px; color: #cbd5e1; text-decoration: none; }
+
+  .hero { padding: 48px 0 64px; }
+  .hero h1 { font-size: clamp(28px, 6vw, 46px); line-height: 1.15; letter-spacing: -0.02em; max-width: 720px; }
+  .hero h1 span { color: var(--ember); }
+  .hero p { margin-top: 16px; font-size: clamp(16px, 2.5vw, 19px); color: #cbd5e1; max-width: 600px; }
+  .cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 22px; border-radius: 12px; font-weight: 600; font-size: 15px; text-decoration: none; border: 0; cursor: pointer; font-family: inherit; }
+  .btn-primary { background: var(--ember); color: #fff; }
+  .btn-primary:hover { background: var(--ember-dark); }
+  .btn-wa { background: #25D366; color: #fff; }
+  .btn-ghost { background: var(--steel-mid); color: #fff; }
+  .note { margin-top: 14px; font-size: 13px; color: #94a3b8; }
+
+  section { padding: 56px 0; }
+  h2 { font-size: clamp(22px, 4vw, 30px); letter-spacing: -0.01em; }
+  .lead { color: var(--muted); margin-top: 8px; max-width: 620px; }
+  .grid { display: grid; gap: 14px; margin-top: 28px; }
+  @media (min-width: 720px) { .grid.three { grid-template-columns: repeat(3, 1fr); } .grid.two { grid-template-columns: repeat(2, 1fr); } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
+  .card h3 { font-size: 16px; margin-bottom: 6px; }
+  .card p { font-size: 14.5px; color: var(--muted); }
+  .pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 999px; margin-bottom: 10px; }
+  .pill.built { background: #dcfce7; color: #166534; }
+  .pill.soon { background: var(--amber-bg); color: var(--amber-text); border: 1px solid var(--amber-line); }
+  ul.ticks { list-style: none; margin-top: 4px; }
+  ul.ticks li { position: relative; padding: 7px 0 7px 26px; font-size: 14.5px; border-bottom: 1px solid var(--line); }
+  ul.ticks li:last-child { border-bottom: 0; }
+  ul.ticks li::before { content: "✓"; position: absolute; left: 0; color: var(--ember); font-weight: 700; }
+  ul.ticks.soon li::before { content: "•"; color: var(--amber-text); }
+
+  .waitlist { background: var(--steel); color: #fff; border-radius: 20px; padding: 28px 20px; }
+  .waitlist h2 { color: #fff; }
+  .waitlist .lead { color: #cbd5e1; }
+  form { display: grid; gap: 12px; margin-top: 22px; max-width: 520px; }
+  label { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #cbd5e1; }
+  input, select { width: 100%; min-height: 48px; border-radius: 12px; border: 1px solid #3a435c; background: var(--steel-mid); color: #fff; padding: 0 14px; font-size: 16px; font-family: inherit; }
+  input:focus, select:focus { outline: 2px solid var(--ember); border-color: var(--ember); }
+  .status { font-size: 14px; min-height: 20px; }
+  .status.ok { color: #86efac; } .status.err { color: #fca5a5; }
+
+  details { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; margin-top: 10px; }
+  summary { font-weight: 600; cursor: pointer; }
+  details p { margin-top: 8px; font-size: 14.5px; color: var(--muted); }
+
+  footer { padding: 28px 0 40px; font-size: 13px; color: var(--muted); text-align: center; }
+  .sr { position: absolute; left: -9999px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="nav">
+      <a class="brand" href="#"><span class="logo">SP</span> SwiftPOS</a>
+      <a class="link" href="#waitlist">Join waitlist</a>
+    </div>
+    <div class="hero">
+      <h1>Know what's low, what's expiring, and <span>who owes you</span> — from your phone.</h1>
+      <p>Simple sales, stock and customer-credit tracking built for Nigerian pharmacies and provision stores. Works on any phone, tablet or laptop.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="#waitlist">Join the waitlist</a>
+        <a class="btn btn-wa" id="waLink" href="#">Chat on WhatsApp</a>
+      </div>
+      <p class="note">Early access is free for waitlist members. No card needed.</p>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section>
+    <div class="wrap">
+      <h2>Three things that quietly cost shops money</h2>
+      <p class="lead">Most small shops still run on a notebook and memory. That's where money leaks.</p>
+      <div class="grid three">
+        <div class="card"><h3>Unrecorded debts</h3><p>"I'll pay next week" turns into forgotten money. Record every credit sale with the customer's name and phone, and track part-payments until it's cleared.</p></div>
+        <div class="card"><h3>Stock running out</h3><p>Fast sellers go out of stock before you notice. Low-stock alerts show what to reorder before customers walk away.</p></div>
+        <div class="card"><h3>Slow, messy sales</h3><p>Scan a barcode with your phone camera or a USB scanner, tap Cash, Transfer, POS or Credit, and send the receipt on WhatsApp.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="wrap">
+      <h2>What works today, and what's next</h2>
+      <p class="lead">We're building in the open. Here is the honest status.</p>
+      <div class="grid two">
+        <div class="card">
+          <span class="pill built">Working in the prototype</span>
+          <ul class="ticks">
+            <li>Fast sales screen with cart</li>
+            <li>Barcode scanning (phone camera or USB scanner)</li>
+            <li>Print or WhatsApp receipts</li>
+            <li>Credit sales and a debt ledger with part-payments</li>
+            <li>Low and out-of-stock alerts</li>
+            <li>Owner and cashier PINs (cashiers can't see reports)</li>
+            <li>Phone and tablet friendly</li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="pill soon">Coming next</span>
+          <ul class="ticks soon">
+            <li>Cloud backup and sync across your devices</li>
+            <li>Expiry-date alerts for drugs</li>
+            <li>WhatsApp reminders to customers who owe</li>
+            <li>Daily sales summary sent to the owner</li>
+            <li>Multiple staff accounts</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:0" id="waitlist">
+    <div class="wrap">
+      <div class="waitlist">
+        <h2>Get early access</h2>
+        <p class="lead">Tell us about your shop. We'll message you on WhatsApp when your spot is ready and ask what you'd like built first.</p>
+        <form id="form" novalidate>
+          <div><label for="name">Your name</label><input id="name" name="name" autocomplete="name" required></div>
+          <div><label for="shop">Shop name</label><input id="shop" name="shop" required></div>
+          <div><label for="phone">WhatsApp number</label><input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="080..." required></div>
+          <div><label for="type">Shop type</label>
+            <select id="type" name="type"><option>Pharmacy</option><option>Provision / supermarket</option><option>Other</option></select>
+          </div>
+          <input class="sr" tabindex="-1" autocomplete="off" name="website" id="website" aria-hidden="true">
+          <button class="btn btn-primary" type="submit">Join the waitlist</button>
+          <p class="status" id="status" role="status"></p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="wrap">
+      <h2>Questions</h2>
+      <details><summary>Is it free?</summary><p>Waitlist members get free early access. We plan to keep a free plan; paid plans will cover cloud sync, staff accounts and reminders. Pricing will be shared with the waitlist first.</p></details>
+      <details><summary>Does it need internet?</summary><p>The prototype stores data on your device. The cloud version will back it up and sync it, and we are designing it to keep working when the network drops.</p></details>
+      <details><summary>Will my customers' details be safe?</summary><p>Customer names and phone numbers are only shown to the shop owner. We will never sell your data or message your customers without your say-so.</p></details>
+      <details><summary>Can I try the prototype now?</summary><p>Message us on WhatsApp and we'll send you a link and walk you through it.</p></details>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">SwiftPOS · built for small shops in Nigeria · <a href="#waitlist">Join the waitlist</a></div>
+</footer>
+
+<script>
+  // ── Fill these in before publishing ───────────────────────────────────────
+  var WHATSAPP_NUMBER = '';   // e.g. '2348031234567' (country code, no + or spaces)
+  var FORM_ENDPOINT   = '';   // optional: Formspree/Google-Apps-Script URL that accepts a POST
+  // ─────────────────────────────────────────────────────────────────────────
+
+  function waUrl(text) {
+    return 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(text);
+  }
+  var waLink = document.getElementById('waLink');
+  if (WHATSAPP_NUMBER) waLink.href = waUrl('Hi, I run a shop and I\'d like to know more about SwiftPOS.');
+  else waLink.style.display = 'none';
+
+  document.getElementById('form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var f = e.target, status = document.getElementById('status');
+    var data = { name: f.name.value.trim(), shop: f.shop.value.trim(), phone: f.phone.value.trim(), type: f.type.value };
+    status.className = 'status';
+    if (f.website.value) return; // honeypot
+    if (!data.name || !data.shop || data.phone.replace(/\D/g, '').length < 7) {
+      status.className = 'status err'; status.textContent = 'Please fill in your name, shop name and a valid phone number.'; return;
+    }
+    if (FORM_ENDPOINT) {
+      fetch(FORM_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(data) })
+        .then(function (r) { if (!r.ok) throw new Error(); status.className = 'status ok'; status.textContent = 'You\'re on the list. We\'ll message you on WhatsApp.'; f.reset(); })
+        .catch(function () { status.className = 'status err'; status.textContent = 'Something went wrong. Please try again.'; });
+    } else if (WHATSAPP_NUMBER) {
+      window.open(waUrl('Waitlist signup — ' + data.name + ', ' + data.shop + ' (' + data.type + '), ' + data.phone), '_blank');
+      status.className = 'status ok'; status.textContent = 'Opening WhatsApp so you can confirm your spot.';
+    } else {
+      status.className = 'status err'; status.textContent = 'Signup is not connected yet. (Owner: set WHATSAPP_NUMBER or FORM_ENDPOINT in index.html.)';
+    }
+  });
+</script>
+</body>
+</html>

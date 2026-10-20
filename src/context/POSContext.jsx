@@ -33,6 +33,8 @@ const initialState = {
   cart: {},
   // completed sales (today)
   sales: [],
+  // customer credit/debt records
+  debts: [],
   // ui
   activeCategory: 'All',
   searchQuery: '',
@@ -129,8 +131,11 @@ function posReducer(state, action) {
       return { ...state, cart: {} }
 
     // ─ Sales ────────────────────────────────────────────────────────────────
+    case 'SET_SALES':
+      return { ...state, sales: action.payload }
+
     case 'COMPLETE_SALE': {
-      const { paymentMethod } = action.payload
+      const { paymentMethod, customer } = action.payload
       const items = Object.values(state.cart)
       if (!items.length) return state
 
@@ -138,14 +143,17 @@ function posReducer(state, action) {
       const vat       = Math.round(subtotal * state.store.vatRate)
       const total     = subtotal + vat
       const saleId    = uuid()
+      const saleItems = items.map(i => ({ ...i.product, qty: i.qty, lineTotal: i.product.price * i.qty }))
+      const isCredit  = paymentMethod === 'Credit' && customer
 
       const sale = {
         id: saleId,
-        items: items.map(i => ({ ...i.product, qty: i.qty, lineTotal: i.product.price * i.qty })),
+        items: saleItems,
         subtotal,
         vat,
         total,
         paymentMethod,
+        customer: isCredit ? customer : null,
         timestamp: new Date().toISOString(),
         receiptNo: `RCP-${Date.now().toString().slice(-6)}`,
       }
@@ -156,12 +164,45 @@ function posReducer(state, action) {
         return cartItem ? { ...p, stock: Math.max(0, p.stock - cartItem.qty) } : p
       })
 
+      let debts = state.debts
+      if (isCredit) {
+        const debt = {
+          id: uuid(),
+          saleId,
+          customerName: customer.name,
+          phone: customer.phone,
+          amountOwed: total,
+          originalAmount: total,
+          items: saleItems,
+          date: sale.timestamp,
+          payments: [],
+        }
+        debts = [debt, ...state.debts]
+      }
+
       return {
         ...state,
         products,
         cart: {},
         sales: [sale, ...state.sales],
+        debts,
       }
+    }
+
+    // ─ Debts / customer credit ──────────────────────────────────────────────
+    case 'SET_DEBTS':
+      return { ...state, debts: action.payload }
+
+    case 'RECORD_PAYMENT': {
+      const { debtId, amount } = action.payload
+      if (!amount || amount <= 0) return state
+      const debts = state.debts.map(d => {
+        if (d.id !== debtId) return d
+        const paid = Math.min(amount, d.amountOwed)
+        const payments = [...(d.payments || []), { amount: paid, date: new Date().toISOString() }]
+        return { ...d, amountOwed: Math.round((d.amountOwed - paid) * 100) / 100, payments }
+      })
+      return { ...state, debts }
     }
 
     // ─ UI filters ────────────────────────────────────────────────────────────
@@ -193,6 +234,8 @@ export function POSProvider({ children }) {
       if (saved) {
         const parsed = JSON.parse(saved)
         if (parsed.products?.length) dispatch({ type: 'SET_PRODUCTS', payload: parsed.products })
+        if (parsed.sales?.length) dispatch({ type: 'SET_SALES', payload: parsed.sales })
+        if (parsed.debts?.length) dispatch({ type: 'SET_DEBTS', payload: parsed.debts })
       } else {
         // First launch — load seed data
         dispatch({ type: 'SET_PRODUCTS', payload: SEED_PRODUCTS })
@@ -204,9 +247,9 @@ export function POSProvider({ children }) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('pos_state', JSON.stringify({ products: state.products, store: state.store }))
+      localStorage.setItem('pos_state', JSON.stringify({ products: state.products, store: state.store, sales: state.sales, debts: state.debts }))
     } catch { /* storage full or unavailable */ }
-  }, [state.products, state.store])
+  }, [state.products, state.store, state.sales, state.debts])
 
   // ── Derived / computed ───────────────────────────────────────────────────
   const cartItems    = Object.values(state.cart)
@@ -232,6 +275,12 @@ export function POSProvider({ children }) {
   })
   const todayRevenue = todaySales.reduce((s, sale) => s + sale.total, 0)
 
+  const outstandingDebts = state.debts
+    .filter(d => d.amountOwed > 0)
+    .sort((a, b) => b.amountOwed - a.amountOwed)
+  const settledDebts = state.debts.filter(d => d.amountOwed <= 0)
+  const totalOutstandingDebt = outstandingDebts.reduce((s, d) => s + d.amountOwed, 0)
+
   return (
     <POSContext.Provider value={{
       state,
@@ -250,6 +299,10 @@ export function POSProvider({ children }) {
       // sales
       todaySales,
       todayRevenue,
+      // debts
+      outstandingDebts,
+      settledDebts,
+      totalOutstandingDebt,
     }}>
       {children}
     </POSContext.Provider>

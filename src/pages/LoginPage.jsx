@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 
 export default function LoginPage() {
-  const { login } = useAuth()
+  const { login, users } = useAuth()
   const [pin, setPin]     = useState('')
   const [error, setError] = useState(false)
   const [shake, setShake] = useState(false)
@@ -29,9 +29,9 @@ export default function LoginPage() {
   const KEYS = ['1','2','3','4','5','6','7','8','9','','0','del']
 
   return (
-    <div className="min-h-screen bg-[#1a1f2e] flex flex-col items-center justify-center p-6">
+    <div className="min-h-[100dvh] bg-[#1a1f2e] flex flex-col items-center justify-center p-6">
       <div className="mb-8 text-center">
-        <div className="w-16 h-16 bg-[#e8622a] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+        <div className="w-16 h-16 bg-[#ea580c] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
           <span className="text-white font-bold text-2xl">SP</span>
         </div>
         <h1 className="text-white text-2xl font-bold">SwiftPOS</h1>
@@ -43,7 +43,7 @@ export default function LoginPage() {
         {[0,1,2,3].map(i => (
           <div key={i} className={`w-5 h-5 rounded-full border-2 transition-all duration-150
             ${i < pin.length
-              ? error ? 'bg-red-500 border-red-500' : 'bg-[#e8622a] border-[#e8622a]'
+              ? error ? 'bg-red-500 border-red-500' : 'bg-[#ea580c] border-[#ea580c]'
               : 'border-gray-600 bg-transparent'
             }`}
           />
@@ -65,7 +65,7 @@ export default function LoginPage() {
           )
           return (
             <button key={i} onClick={() => handleKey(k)}
-              className="h-16 rounded-2xl bg-[#252c3f] border border-[#2f3850] text-white text-xl font-semibold flex items-center justify-center hover:bg-[#2f3850] hover:border-[#e8622a] active:scale-95 transition-all select-none">
+              className="h-16 rounded-2xl bg-[#252c3f] border border-[#2f3850] text-white text-xl font-semibold flex items-center justify-center hover:bg-[#2f3850] hover:border-[#ea580c] active:scale-95 transition-all select-none">
               {k}
             </button>
           )
@@ -73,7 +73,12 @@ export default function LoginPage() {
       </div>
 
       <p className="text-gray-600 text-xs mt-8 text-center">
-        Owner PIN: <span className="text-gray-400">1234</span> &nbsp;·&nbsp; Cashier PIN: <span className="text-gray-400">0000</span>
+        {users.map((u, i) => (
+          <React.Fragment key={u.id}>
+            {i > 0 && <>&nbsp;·&nbsp;</>}
+            {u.name} PIN: <span className="text-gray-400">{u.pin}</span>
+          </React.Fragment>
+        ))}
       </p>
     </div>
   )
